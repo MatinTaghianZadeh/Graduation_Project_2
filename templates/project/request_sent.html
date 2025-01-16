@@ -1,0 +1,33 @@
+{%extends "project/home_page.html"%}
+{%block body_block%}
+
+<title>Join Request Sent</title>
+<style>
+
+    .request {
+        margin: 10px;
+        text-align: center;
+        background: #1b8f1b;
+        padding: 50px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 400;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+    }
+
+    p {
+        font-size: 1.2em;
+    }
+</style>
+
+<div class="request">
+    <h1>Your join request has been sent for approval!</h1>
+    <p>We'll notify you once it's approved.</p>
+</div>
+
+{%endblock%}

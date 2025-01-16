@@ -1,0 +1,301 @@
+{%extends "project/home_page.html"%}
+{%block body_block%}
+<style>
+.message-container {
+
+    position: relative;
+    background-color: #66a6eb;
+    color: rgb(0, 0, 0);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+    display: block;
+}
+
+
+/* Author Name Styling */
+.author {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+/* Message Content Styling */
+.content {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+/* Time Stamp Styling */
+.timestamp {
+    font-size: 0.8em;
+    color: #888;
+}
+
+/* Scrollbar Styling */
+#display {
+    max-height: 400px;
+    overflow-y: auto; /* Use auto to show scrollbar only when needed */
+    padding: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent; /* Customize scrollbar color */
+}
+
+/* Input Field and Send Button Styling */
+#message {
+    width: calc(100% - 80px);
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-left: 10px;
+}
+
+#sendBtn {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#sendBtn:hover {
+    background-color: #0056b3;
+}
+    .group-info{
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 3em;
+        color: #bd2929;
+    }
+
+    .group-links {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .group-links a {
+        margin-right: 20px;
+        text-decoration: none;
+        color: #007bff;
+        font-weight: bold;
+        transition: color 0.3s ease;
+    }
+
+    .group-links a:hover {
+        color: #0056b3;
+    }
+
+    .time-left {
+        position: absolute;
+        right: 5px;
+        bottom: 2px;
+    }
+
+    #send {
+        color: white;
+        border-radius: 25%;
+        background-color: rgb(13, 198, 13);
+        height: 40px;
+        width: 40px;
+    }
+
+    #name {
+        color: rgb(198, 34, 34);
+        text-decoration: none;
+    }
+    .dropdown-icon {
+    cursor: pointer;
+    width: 30px;
+    height: 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.dropdown-icon span {
+    display: block;
+    height: 4px;
+    background-color: #007bff;
+    border-radius: 2px;
+    transition: background-color 0.3s ease;
+}
+
+/* Dropdown Menu Styling */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    margin-top: 5px;
+    z-index: 10;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 5px 10px;
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-menu a:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.group-links-dropdown{
+    position: absolute;
+    right: 10px;
+    top: 20px;
+}
+</style>
+<body>
+    <div class="group-info">
+        <a id="name" href="{% url 'project:group_detail' pk=group.id %}">Group Name: {{ group.name }}</a>
+        {% if user.is_staff %}
+        <div class="group-links">
+            <div class="group-links-dropdown">
+                <div class="dropdown-icon" id="dropdownIcon">
+                    <!-- Hamburger Icon -->
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    
+                        <a href="{% url 'project:group_delete' pk=group.id %}">Delete Group</a>
+                        <a href="{% url 'project:group_update' pk=group.id %}">Update Group</a>
+        
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    
+    
+        <!-- {% if user.is_staff %}
+            <a href="{% url 'project:group_delete' pk=group.id %}">Delete Group</a>
+            <a href="{% url 'project:group_update' pk=group.id %}">Update Group</a>
+        {% endif %} -->
+    </div>
+
+
+
+    <div id="display">
+        
+    </div>
+
+
+<form id="sendMessageForm" method="POST">
+    {% csrf_token %}
+    {{ send.as_p }}
+    <input type="text" name="message" id="message" width="100px"/>
+    <button id="send" type="submit"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+  <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+</svg></button>
+</form>
+
+
+<script>
+$(document).ready(function(){
+    var autoScroll = true; // Flag to control automatic scrolling
+
+    $('#sendMessageForm').submit(function(e){
+        e.preventDefault(); // Prevent the default form submission
+
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(), // Serialize form data
+            success: function(response){
+                // Assuming the server responds with HTML containing the new message
+                $('#display').append(response); // Append the new message
+                console.log('Message sent successfully!');
+
+                if (autoScroll) {
+                    // Scroll to the bottom of the display area
+                    $('#display').scrollTop($('#display')[0].scrollHeight);
+                }
+            },
+            error: function(error){
+                console.error('Error:', error);
+            }
+        });
+
+        // Clear the input field after sending the message
+        $('#message').val('');
+
+        // Do not focus on the input field to prevent automatic scrolling
+        return false;
+    });
+
+    // Function to update messages display
+    function updateMessages() {
+        $.ajax({
+            type: 'GET',
+            url: "{% url 'project:getMessage' pk=group.id %}",
+            success: function(response){
+                // Clear the display area
+                $("#display").html('');
+                
+                // Append each message
+                for (var key in response.messages){
+                    var temp = "<div class='message-container darker'><b>" + response.messages[key].author + ": </b><p>" + response.messages[key].content + "</p><span class='time-left'>" + response.messages[key].timestamp + "</span></div>";
+                    $("#display").append(temp); // Append each message
+                }
+
+                if (autoScroll) {
+                    // Scroll to the bottom of the display area after updating messages
+                    $('#display').scrollTop($('#display')[0].scrollHeight);
+                }
+            },
+            error: function(response){
+                alert('An error occurred');
+            }
+        });
+    }
+
+    // Call the updateMessages function initially and then at intervals
+    updateMessages(); // Call initially
+    setInterval(updateMessages, 1000); // Update messages at intervals (adjust interval time as needed)
+
+    // Event listener for scrolling in the display area
+    $('#display').scroll(function(){
+        var scrollHeight = $('#display')[0].scrollHeight;
+        var scrollTop = $('#display').scrollTop();
+        var outerHeight = $('#display').outerHeight();
+
+        // Check if the user has scrolled to the bottom
+        if (scrollHeight - scrollTop === outerHeight) {
+            autoScroll = true; // Enable automatic scrolling if at the bottom
+        } else {
+            autoScroll = false; // Disable automatic scrolling if not at the bottom
+        }
+    });
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdownIcon = document.getElementById('dropdownIcon');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+
+    dropdownIcon.addEventListener('click', function() {
+        // Toggle the visibility of the dropdown menu
+        dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    document.addEventListener('click', function(event) {
+        if (!dropdownIcon.contains(event.target) && !dropdownMenu.contains(event.target)) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+});
+</script>
+
+{%endblock%}
+
+
